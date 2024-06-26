@@ -229,7 +229,7 @@ const ScheduleEmail = () => {
     console.log("Email sequence:", sequence);
 
     try {
-      const response = await fetch("http://localhost:4000/schedule-email", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/schedule-email`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
