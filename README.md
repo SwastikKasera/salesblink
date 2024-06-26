@@ -2,6 +2,8 @@
 
 This guide provides instructions for setting up the server for the Salesblink application.
 
+### Link - https://salesblink-nvt1.onrender.com/
+
 ## Installation
 
 1. Navigate to the `server` folder.
