@@ -29,7 +29,13 @@ const EmailListNode = ({ data }) => (
       placeholder="Enter emails (one per line)"
       value={data.emails}
       onChange={(e) => data.updateEmails(data.id, e.target.value)}
-      style={{ width: "200px", marginTop: "10px", padding: "5px", borderRadius: "4px", border: "1px solid #ccc" }}
+      style={{
+        width: "200px",
+        marginTop: "10px",
+        padding: "5px",
+        borderRadius: "4px",
+        border: "1px solid #ccc",
+      }}
     />
   </div>
 );
@@ -53,13 +59,25 @@ const SendEmailNode = ({ data }) => (
       placeholder="Subject"
       value={data.subject}
       onChange={(e) => data.updateField(data.id, "subject", e.target.value)}
-      style={{ width: "200px", marginTop: "10px", padding: "5px", borderRadius: "4px", border: "1px solid #ccc" }}
+      style={{
+        width: "200px",
+        marginTop: "10px",
+        padding: "5px",
+        borderRadius: "4px",
+        border: "1px solid #ccc",
+      }}
     />
     <textarea
       placeholder="Email body"
       value={data.body}
       onChange={(e) => data.updateField(data.id, "body", e.target.value)}
-      style={{ width: "200px", marginTop: "10px", padding: "5px", borderRadius: "4px", border: "1px solid #ccc" }}
+      style={{
+        width: "200px",
+        marginTop: "10px",
+        padding: "5px",
+        borderRadius: "4px",
+        border: "1px solid #ccc",
+      }}
     />
   </div>
 );
@@ -83,12 +101,24 @@ const WaitNode = ({ data }) => (
       placeholder="Duration"
       value={data.duration}
       onChange={(e) => data.updateField(data.id, "duration", e.target.value)}
-      style={{ width: "200px", marginTop: "10px", padding: "5px", borderRadius: "4px", border: "1px solid #ccc" }}
+      style={{
+        width: "200px",
+        marginTop: "10px",
+        padding: "5px",
+        borderRadius: "4px",
+        border: "1px solid #ccc",
+      }}
     />
     <select
       value={data.unit}
       onChange={(e) => data.updateField(data.id, "unit", e.target.value)}
-      style={{ width: "200px", marginTop: "10px", padding: "5px", borderRadius: "4px", border: "1px solid #ccc" }}
+      style={{
+        width: "200px",
+        marginTop: "10px",
+        padding: "5px",
+        borderRadius: "4px",
+        border: "1px solid #ccc",
+      }}
     >
       <option value="seconds">Seconds</option>
       <option value="minutes">Minutes</option>
@@ -105,8 +135,44 @@ const nodeTypes = {
 const ScheduleEmail = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [flowName, setFlowName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const saveFlow = async () => {
+    if (!flowName.trim()) {
+      setFlowName(`new flow ${Date.now()}`)
+    }
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/save-flow`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name: flowName || `new flow ${Date.now()}`, nodes, edges }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to save flow");
+      }
+
+      const result = await response.json();
+      console.log("Save Flow Response:", result);
+      alert("Flow saved successfully!");
+      setFlowName("");
+    } catch (err) {
+      console.error("Error saving flow:", err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const onConnect = useCallback(
     (params) => {
@@ -229,13 +295,16 @@ const ScheduleEmail = () => {
     console.log("Email sequence:", sequence);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/schedule-email`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ sequence }),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/schedule-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ sequence }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to schedule email sequence");
@@ -253,8 +322,22 @@ const ScheduleEmail = () => {
   };
 
   return (
-    <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column" }}>
-      <div style={{ padding: "20px", display: "flex", gap: "10px", marginBottom: "10px" }}>
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div
+        style={{
+          padding: "20px",
+          display: "flex",
+          gap: "10px",
+          marginBottom: "10px",
+        }}
+      >
         <button
           onClick={() => addNode("emailList")}
           style={{
@@ -311,6 +394,33 @@ const ScheduleEmail = () => {
           }}
         >
           {isLoading ? "Scheduling..." : "Schedule Email Sequence"}
+        </button>
+        <input
+          type="text"
+          placeholder="Enter flow name"
+          value={flowName}
+          onChange={(e) => setFlowName(e.target.value)}
+          style={{
+            padding: "10px",
+            borderRadius: "5px",
+            border: "1px solid #ccc",
+            marginRight: "10px",
+          }}
+        />
+        <button
+          onClick={saveFlow}
+          disabled={isLoading}
+          style={{
+            padding: "10px 20px",
+            border: "none",
+            borderRadius: "5px",
+            background: isLoading ? "#6c757d" : "#dc3545",
+            color: "#fff",
+            cursor: isLoading ? "not-allowed" : "pointer",
+            transition: "background 0.3s",
+          }}
+        >
+          Save Flow
         </button>
       </div>
       {error && <p style={{ color: "red", marginLeft: "20px" }}>{error}</p>}
