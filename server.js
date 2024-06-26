@@ -26,6 +26,9 @@ mongoose
 const agenda = new Agenda({ db: { address: MONGODB_URI } });
 
 // POST endpoint to schedule email sequence
+app.get("/", (req,res)=>{
+  res.send("Server is up and running")
+})
 app.post("/schedule-email", async (req, res) => {
   try {
     const { sequence } = req.body;
