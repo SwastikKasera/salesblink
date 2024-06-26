@@ -12,6 +12,16 @@ app.use(cors());  // Enable CORS for all routes
 const PORT = process.env.PORT || 4000;
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/email-marketing";
 
+const flowSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  nodes: { type: Array, required: true },
+  edges: { type: Array, required: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+const Flow = mongoose.model('Flow', flowSchema);
+
 // Connect to MongoDB
 mongoose
   .connect(MONGODB_URI)
@@ -75,6 +85,55 @@ app.post("/schedule-email", async (req, res) => {
   } catch (error) {
     console.error("Error scheduling email sequence:", error);
     res.status(500).json({ error: "Failed to schedule email sequence" });
+  }
+});
+
+app.post("/save-flow", async (req, res) => {
+  try {
+    const { name, nodes, edges } = req.body;
+
+    if (!name || !nodes || !edges) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const newFlow = new Flow({
+      name,
+      nodes,
+      edges
+    });
+
+    await newFlow.save();
+
+    res.status(201).json({
+      message: "Flow saved successfully",
+      flowId: newFlow._id
+    });
+  } catch (error) {
+    console.error("Error saving flow:", error);
+    res.status(500).json({ error: "Failed to save flow" });
+  }
+});
+
+app.get("/flows", async (req, res) => {
+  try {
+    const flows = await Flow.find({}, 'name createdAt');
+    res.status(200).json(flows);
+  } catch (error) {
+    console.error("Error retrieving flows:", error);
+    res.status(500).json({ error: "Failed to retrieve flows" });
+  }
+});
+
+app.get("/flow/:id", async (req, res) => {
+  try {
+    const flow = await Flow.findById(req.params.id);
+    if (!flow) {
+      return res.status(404).json({ error: "Flow not found" });
+    }
+    res.status(200).json(flow);
+  } catch (error) {
+    console.error("Error retrieving flow:", error);
+    res.status(500).json({ error: "Failed to retrieve flow" });
   }
 });
 
